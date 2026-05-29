@@ -6,6 +6,7 @@
     <title>Rajavel P | Digital Marketing Specialist</title>
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;0,900;1,400&family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
 
     <style>
     /* ── RESET & VARIABLES ── */
@@ -2024,12 +2025,13 @@
             <!-- Form -->
             <form class="cform reveal fr" id="cform">
                 <div class="field-row">
-                    <input class="finput" type="text"  placeholder="Your Name"  required>
-                    <input class="finput" type="email" placeholder="Your Email" required>
+                    <input class="finput" type="text"  name="from_name"    placeholder="Your Name"  required>
+                    <input class="finput" type="email" name="from_email"   placeholder="Your Email" required>
                 </div>
-                <input class="finput" type="text" placeholder="Subject">
-                <textarea class="ftextarea" placeholder="Your Message..."></textarea>
-                <button class="btn-send" type="submit">Send Message</button>
+                <input class="finput" type="text" name="subject" placeholder="Subject">
+                <textarea class="ftextarea" name="message" placeholder="Your Message..."></textarea>
+                <button class="btn-send" type="submit" id="sendBtn">Send Message</button>
+                <p id="form-status" style="text-align:center;font-size:.82rem;margin-top:.3rem;min-height:1.2em;"></p>
             </form>
         </div>
     </div>
@@ -2290,19 +2292,50 @@ document.querySelectorAll('.port-card').forEach(card => {
     document.addEventListener('keydown', e => { if (e.key === 'Escape') close(); });
 })();
 
-/* ── CONTACT FORM ── */
-document.getElementById('cform').addEventListener('submit', function(e) {
-    e.preventDefault();
-    const btn  = this.querySelector('.btn-send');
-    const orig = btn.textContent;
-    btn.textContent = '✓ Message Sent!';
-    btn.style.background = 'linear-gradient(135deg,#4ade80,#22c55e)';
-    setTimeout(() => {
-        btn.textContent = orig;
-        btn.style.background = '';
-        this.reset();
-    }, 3200);
-});
+/* ── CONTACT FORM (EmailJS) ── */
+(function() {
+    // ─── Replace these three values with your EmailJS credentials ───
+    const EMAILJS_PUBLIC_KEY  = 'bGy40c-f-RG_8ekd9';   // from Account > API Keys
+    const EMAILJS_SERVICE_ID  = 'service_uii45fp';   // from Email Services
+    const EMAILJS_TEMPLATE_ID = 'template_qa2ttsa';  // from Email Templates
+    // ─────────────────────────────────────────────────────────────────
+
+    emailjs.init({ publicKey: EMAILJS_PUBLIC_KEY });
+
+    const form   = document.getElementById('cform');
+    const btn    = document.getElementById('sendBtn');
+    const status = document.getElementById('form-status');
+
+    form.addEventListener('submit', function(e) {
+        e.preventDefault();
+        btn.disabled    = true;
+        btn.textContent = 'Sending…';
+        status.style.color = '';
+        status.textContent = '';
+
+        emailjs.sendForm(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, form)
+            .then(() => {
+                btn.textContent    = '✓ Message Sent!';
+                btn.style.background = 'linear-gradient(135deg,#4ade80,#22c55e)';
+                status.style.color = '#4ade80';
+                status.textContent = 'Thank you! I\'ll get back to you soon.';
+                form.reset();
+                setTimeout(() => {
+                    btn.disabled     = false;
+                    btn.textContent  = 'Send Message';
+                    btn.style.background = '';
+                    status.textContent   = '';
+                }, 4000);
+            })
+            .catch(err => {
+                console.error('EmailJS error:', err);
+                btn.disabled     = false;
+                btn.textContent  = 'Send Message';
+                status.style.color = '#f87171';
+                status.textContent = 'Failed to send. Please try emailing directly.';
+            });
+    });
+})();
 </script>
 </body>
 </html>
